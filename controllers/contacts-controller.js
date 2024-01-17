@@ -43,7 +43,7 @@ const updateIdContact = async (req, res, next) => {
     if (error) {
         throw HttpError(400, error.message);
     }
-    const id = req.params;
+    const {id} = req.params;
     const result = await contactService.updateContactById(id,req.body);
     if (!result) {
       throw HttpError(404, `Movie with id=${id} not found`);
@@ -56,7 +56,7 @@ const updateIdContact = async (req, res, next) => {
 
 const deliteById = async (req, res, next) => {
   try {
-    const id = req.params;
+    const {id} = req.params;
     const result = await contactService.removeContact(id);
     if (!result) {
       throw HttpError(404, `Movie with id=${id} not found`);
