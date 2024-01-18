@@ -1,10 +1,14 @@
-import * as contactService from "../models/contacts.js";
+import Contact from "../models/Contact.js";
 import { HttpError } from "../helpers/index.js";
-import {contactAddSchema,contactUpdateSchema} from "../schemas/contact-schemas.js"
+import {
+  contactAddSchema,
+  contactUpdateSchema,
+  contactUpdateFavoriteSchema,
+} from "../models/Contact.js";
 
 const getAll = async (req, res, next) => {
   try {
-    const result = await contactService.listContacts();
+    const result = await Contact.find({}, "-createdAt -updatedAt");
     res.json(result);
   } catch (error) {
     next(error);
@@ -14,7 +18,7 @@ const getAll = async (req, res, next) => {
 const getById = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const result = await contactService.getContactById(id);
+    const result = await Contact.findById(id);
     if (!result) {
       throw HttpError(404, `Movie with id=${id} not found`);
     }
@@ -28,14 +32,14 @@ const add = async (req, res, next) => {
   try {
     const { error } = contactAddSchema.validate(req.body);
     if (error) {
-        throw HttpError(400, error.message);
+      throw HttpError(400, error.message);
     }
-    const result = await contactService.addContact(req.body);
+    const result = await Contact.create(req.body);
     res.status(201).json(result);
   } catch (error) {
     next(error);
   }
-}; 
+};
 
 const updateIdContact = async (req, res, next) => {
   try {
@@ -44,7 +48,7 @@ const updateIdContact = async (req, res, next) => {
         throw HttpError(400, error.message);
     }
     const {id} = req.params;
-    const result = await contactService.updateContactById(id,req.body);
+    const result = await Contact.findByIdAndUpdate(id,req.body);
     if (!result) {
       throw HttpError(404, `Movie with id=${id} not found`);
     }
@@ -52,28 +56,46 @@ const updateIdContact = async (req, res, next) => {
   } catch (error) {
     next(error);
   }
-}; 
+};
 
 const deliteById = async (req, res, next) => {
   try {
     const {id} = req.params;
-    const result = await contactService.removeContact(id);
+    const result = await Contact.findByIdAndDelete(id);
     if (!result) {
       throw HttpError(404, `Movie with id=${id} not found`);
     }
     res.json({
       message: "contact deleted"
   })
-    
+
   } catch (error) {
     next(error);
   }
-}; 
+};
+
+const updateFavoriteContact = async (req, res, next) => {
+  try {
+    const { error } = contactUpdateFavoriteSchema.validate(req.body);
+    if (error) {
+        throw HttpError(400, error.message);
+    }
+    const {id} = req.params;
+    const result = await Contact.findByIdAndUpdate(id,req.body);
+    if (!result) {
+      throw HttpError(404, `Movie with id=${id} not found`);
+    }
+    res.json(result);
+  } catch (error) {
+    next(error);
+  }
+};
 
 export default {
   getAll,
   getById,
   add,
   updateIdContact,
+  updateFavoriteContact,
   deliteById,
 };
