@@ -11,7 +11,7 @@ const getAll = async (req, res) => {
 };
 
 const getById = async (req, res) => {
-  const { id } = req.params;
+  const { id:_id } = req.params;
   const {_id: owner} = req.user;
   const result = await Contact.findOne({_id, owner});
   if (!result) {
@@ -29,7 +29,7 @@ const add = async (req, res) => {
 const updateIdContact = async (req, res) => {
   const { id } = req.params;
   const {_id: owner} = req.user;
-  const result = await Contact.findByIdAndUpdate({_id: owner}, req.body);
+  const result = await Contact.findByIdAndUpdate({_id, owner}, req.body);
   if (!result) {
     throw HttpError(404, `Movie with id=${id} not found`);
   }
@@ -37,9 +37,9 @@ const updateIdContact = async (req, res) => {
 };
 
 const deliteById = async (req, res) => {
-  const { id } = req.params;
+  const { id:_id } = req.params;
   const {_id: owner} = req.user;
-  const result = await Contact.findByIdAndDelete({_id: owner});
+  const result = await Contact.findByIdAndDelete({_id, owner});
   if (!result) {
     throw HttpError(404, `Movie with id=${id} not found`);
   }
@@ -49,9 +49,9 @@ const deliteById = async (req, res) => {
 };
 
 const updateFavoriteContact = async (req, res) => {
-  const { id } = req.params;
+  const { id:_id } = req.params;
   const {_id: owner} = req.user;
-  const result = await Contact.findByIdAndUpdate({_id: owner}, req.body);
+  const result = await Contact.findByIdAndUpdate({_id, owner}, req.body);
   if (!result) {
     throw HttpError(404, `Movie with id=${id} not found`);
   }
