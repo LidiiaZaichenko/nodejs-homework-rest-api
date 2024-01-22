@@ -1,3 +1,6 @@
+import fs from "fs/promises";
+import path from "path";
+
 import jwt from "jsonwebtoken";
 
 import User from "../models/User.js";
@@ -12,7 +15,13 @@ dotenv.config();
 
 const { JWT_SECRET } = process.env;
 
+const avatarsPath = path.resolve("public", "avatars");
+
 const signup = async (req, res) => {
+  const { path: oldPath, filename } = req.file;
+  const newPath = path.join(avatarsPath, filename);
+  await fs.rename(oldPath, newPath);
+  const avatar = path.join("avatars", filename);
   const { email, password } = req.body;
   const user = await User.findOne({ email });
   if (user) {
@@ -21,7 +30,11 @@ const signup = async (req, res) => {
 
   const hashPassword = await bcrypt.hash(password, 10);
 
-  const newUser = await User.create({ ...req.body, password: hashPassword });
+  const newUser = await User.create({
+    ...req.body,
+    avatar,
+    password: hashPassword,
+  });
 
   res.json({
     username: newUser.username,
@@ -61,18 +74,23 @@ const getCurrent = async (req, res) => {
   });
 };
 
-const signout = async(req, res)=> {
-  const {_id} = req.user;
-  await User.findByIdAndUpdate(_id, {token: ""});
+const signout = async (req, res) => {
+  const { _id } = req.user;
+  await User.findByIdAndUpdate(_id, { token: "" });
 
   res.json({
-      message: "Signout success"
-  })
-}
+    message: "Signout success",
+  });
+};
+
+const updateAvatar = async(reg,res)=> {
+  
+};
 
 export default {
   signup: ctrlWrapper(signup),
   signin: ctrlWrapper(signin),
   getCurrent: ctrlWrapper(getCurrent),
   signout: ctrlWrapper(signout),
+  updateAvatar:ctrlWrapper(updateAvatar),
 };
