@@ -1,8 +1,8 @@
 import fs from "fs/promises";
 import path from "path";
-
 import jwt from "jsonwebtoken";
-
+import gravatar from "gravatar";
+import Jimp from "jimp";
 import User from "../models/User.js";
 import bcrypt from "bcrypt";
 
@@ -18,10 +18,6 @@ const { JWT_SECRET } = process.env;
 const avatarsPath = path.resolve("public", "avatars");
 
 const signup = async (req, res) => {
-  const { path: oldPath, filename } = req.file;
-  const newPath = path.join(avatarsPath, filename);
-  await fs.rename(oldPath, newPath);
-  const avatar = path.join("avatars", filename);
   const { email, password } = req.body;
   const user = await User.findOne({ email });
   if (user) {
@@ -29,11 +25,11 @@ const signup = async (req, res) => {
   }
 
   const hashPassword = await bcrypt.hash(password, 10);
-
+  const avatarURL = gravatar.url(email);
   const newUser = await User.create({
     ...req.body,
-    avatar,
     password: hashPassword,
+    avatarURL,
   });
 
   res.json({
@@ -83,8 +79,32 @@ const signout = async (req, res) => {
   });
 };
 
-const updateAvatar = async(reg,res)=> {
-  
+const updateAvatar = async (req, res) => {
+  const { _id } = req.user;
+  const { path: tempUpload, originalname } = req.file;
+  if (!req.file) {
+    res.status(400).json({ message: "No file uploaded" });
+  }
+  const img = await Jimp.read(tempUpload);
+  await img
+    .autocrop()
+    .cover(250, 250, Jimp.HORIZONTAL_ALIGN_CENTER | Jimp.VERTICAL_ALIGN_MIDDLE)
+    .writeAsync(tempUpload);
+
+  const filename = `${_id}_${originalname}`;
+  try {
+    const resultUpload = path.join(avatarsPath, filename);
+    await fs.rename(tempUpload, resultUpload);
+    const avatarURL = path.join("avatars", filename);
+    await User.findByIdAndUpdate(_id, { avatarURL });
+
+    res.status(200).json({
+      avatarURL,
+    });
+  } catch (error) {
+    await fs.unlink(tempUpload);
+    throw HttpError(400, "Bad Request");
+  }
 };
 
 export default {
@@ -92,5 +112,5 @@ export default {
   signin: ctrlWrapper(signin),
   getCurrent: ctrlWrapper(getCurrent),
   signout: ctrlWrapper(signout),
-  updateAvatar:ctrlWrapper(updateAvatar),
+  updateAvatar: ctrlWrapper(updateAvatar),
 };
