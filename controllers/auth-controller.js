@@ -81,18 +81,14 @@ const signout = async (req, res) => {
 
 const updateAvatar = async (req, res) => {
   const { _id } = req.user;
-  const { path: tempUpload, originalname } = req.file;
-  if (!req.file) {
-    res.status(400).json({ message: "No file uploaded" });
-  }
+  const { path: tempUpload, filename} = req.file;
+
   const img = await Jimp.read(tempUpload);
   await img
     .autocrop()
     .cover(250, 250, Jimp.HORIZONTAL_ALIGN_CENTER | Jimp.VERTICAL_ALIGN_MIDDLE)
     .writeAsync(tempUpload);
 
-  const filename = `${_id}_${originalname}`;
-  try {
     const resultUpload = path.join(avatarsPath, filename);
     await fs.rename(tempUpload, resultUpload);
     const avatarURL = path.join("avatars", filename);
@@ -100,11 +96,7 @@ const updateAvatar = async (req, res) => {
 
     res.status(200).json({
       avatarURL,
-    });
-  } catch (error) {
-    await fs.unlink(tempUpload);
-    throw HttpError(400, "Bad Request");
-  }
+    })
 };
 
 export default {
