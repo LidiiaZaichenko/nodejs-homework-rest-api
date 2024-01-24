@@ -83,10 +83,11 @@ const signout = async (req, res) => {
 
 const updateAvatar = async (req, res) => {
   const { _id } = req.user;
-  const { path: tempUpload, filename } = req.file;
   if (!req.file) {
     res.status(400).json({ message: "No file uploaded" });
   }
+  const { path: tempUpload, filename } = req.file;
+  
 
   const img = await Jimp.read(tempUpload);
   await img
