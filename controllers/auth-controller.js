@@ -39,7 +39,7 @@ const signup = async (req, res) => {
 };
 
 const signin = async (req, res) => {
-  const { email, password } = req.body;
+  const { email, password, username } = req.body;
   const user = await User.findOne({ email });
   if (!user) {
     throw HttpError(401, "Email or password invalid");
@@ -59,6 +59,8 @@ const signin = async (req, res) => {
   await User.findByIdAndUpdate(id, { token });
   res.json({
     token,
+    username,
+    email,
   });
 };
 const getCurrent = async (req, res) => {
@@ -81,7 +83,10 @@ const signout = async (req, res) => {
 
 const updateAvatar = async (req, res) => {
   const { _id } = req.user;
-  const { path: tempUpload, filename} = req.file;
+  const { path: tempUpload, filename } = req.file;
+  if (!req.file) {
+    res.status(400).json({ message: "No file uploaded" });
+  }
 
   const img = await Jimp.read(tempUpload);
   await img
@@ -89,14 +94,14 @@ const updateAvatar = async (req, res) => {
     .cover(250, 250, Jimp.HORIZONTAL_ALIGN_CENTER | Jimp.VERTICAL_ALIGN_MIDDLE)
     .writeAsync(tempUpload);
 
-    const resultUpload = path.join(avatarsPath, filename);
-    await fs.rename(tempUpload, resultUpload);
-    const avatarURL = path.join("avatars", filename);
-    await User.findByIdAndUpdate(_id, { avatarURL });
+  const resultUpload = path.join(avatarsPath, filename);
+  await fs.rename(tempUpload, resultUpload);
+  const avatarURL = path.join("avatars", filename);
+  await User.findByIdAndUpdate(_id, { avatarURL });
 
-    res.status(200).json({
-      avatarURL,
-    })
+  res.status(200).json({
+    avatarURL,
+  });
 };
 
 export default {

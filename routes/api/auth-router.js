@@ -12,7 +12,6 @@ const authRouter = express.Router();
 
 authRouter.post(
   "/signup",
-  upload.single("avatar"),
   isEmptyBody,
   validateBody(userSignupSchema),
   authController.signup
