@@ -39,7 +39,7 @@ const signup = async (req, res) => {
 };
 
 const signin = async (req, res) => {
-  const { email, password, username } = req.body;
+  const { email, password } = req.body;
   const user = await User.findOne({ email });
   if (!user) {
     throw HttpError(401, "Email or password invalid");
@@ -87,7 +87,6 @@ const updateAvatar = async (req, res) => {
     res.status(400).json({ message: "No file uploaded" });
   }
   const { path: tempUpload, filename } = req.file;
-  
 
   const img = await Jimp.read(tempUpload);
   await img
