@@ -59,7 +59,7 @@ const signin = async (req, res) => {
   await User.findByIdAndUpdate(id, { token });
   res.json({
     token,
-    username,
+    username: user.username,
     email,
   });
 };
